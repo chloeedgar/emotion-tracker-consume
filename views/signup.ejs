@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up</title>
+  <!-- Include Bulma CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+</head>
+<body>
+  <!-- Include the navigation bar partial -->
+  <%- include('./partials/_navbar', { isAuthenticated: isAuthenticated }) %>
+
+  <div id="successMessage" class="notification is-success is-hidden">
+    Your account has been successfully created. You will be redirected to the sign-in page shortly.
+  </div>
+  
+  <section class="section">
+    <div class="container">
+      <!-- Sign up form -->
+      <h1 class="title">Sign Up</h1>
+      <form id="signupForm">
+        <!-- Username field -->
+        <div class="field">
+          <label class="label">Username</label>
+          <div class="control">
+            <input class="input" type="text" placeholder="Enter your username" name="username" required>
+          </div>
+        </div>
+
+        <!-- First name field -->
+        <div class="field">
+          <label class="label">First Name</label>
+          <div class="control">
+            <input class="input" type="text" placeholder="First Name" name="firstName" required>
+          </div>
+        </div>
+
+        <!-- Last name field -->
+        <div class="field">
+          <label class="label">Last Name</label>
+          <div class="control">
+            <input class="input" type="text" placeholder="Last Name" name="lastName" required>
+          </div>
+        </div>
+
+        <!-- Email field -->
+        <div class="field">
+          <label class="label">Email Address</label>
+          <div class="control">
+            <input class="input" type="email" placeholder="Email Address" name="email" required>
+          </div>
+        </div>
+
+        <!-- Password field -->
+        <div class="field">
+          <label class="label">Password</label>
+          <div class="control">
+            <input class="input" type="password" placeholder="Password" name="password" required>
+          </div>
+        </div>
+
+        <!-- Terms and conditions checkbox -->
+        <div class="field">
+          <div class="control">
+            <label class="checkbox">
+              <input type="checkbox" name="agreeTerms">
+              I agree to the Terms and Conditions
+            </label>
+          </div>
+        </div>
+
+        <!-- Sign up button -->
+        <div class="field">
+          <div class="control">
+            <button class="button is-primary" type="submit">Sign Up</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+  const SIGNUP_POST_ENDPOINT = 'http://localhost:3001/api/users/signup';
+
+    document.getElementById('signupForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent form submission
+
+      // Get form data
+      const formData = new FormData(event.target);
+
+      // Convert form data to JSON object
+      const jsonData = {};
+      formData.forEach((value, key) => {
+        jsonData[key] = value;
+      });
+
+      // Make POST request to sign up endpoint using Axios
+      axios.post(SIGNUP_POST_ENDPOINT, jsonData)
+      .then(response => {
+        // Handle successful sign-up response
+        console.log(response.data);
+
+        // Display success message banner
+        document.getElementById('successMessage').classList.remove('is-hidden');
+
+        // Redirect to sign-in page after a delay
+        setTimeout(() => {
+          window.location.href = '/signin';
+        }, 3000); // Redirect after 3 seconds
+      })
+      .catch(error => {
+        // Handle sign-up error
+        console.error('Sign Up error:', error);
+        // Display error message to user
+      });
+  });
+  </script>
+</body>
+</html>

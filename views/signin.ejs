@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <style>
+        /* Add custom styles here */
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <%- include('./partials/_navbar', { isAuthenticated: isAuthenticated }) %>
+
+   <!-- Check if there's a success message from sign-up -->
+    <!-- <% if (locals.hasOwnProperty('successMessage')) { %>
+        <div class="notification is-success">
+            <%= successMessage %>
+        </div>
+    <% } %> -->
+    <!-- <% if (locals.hasOwnProperty('success')) { %>
+        <div class="notification is-success">
+            <%= success %>
+        </div>
+    <% } %> -->
+
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Login Here</h1>
+            <form id="loginForm">
+                <div class="field">
+                    <label class="label">Username</label>
+                    <div class="control">
+                        <input class="input" type="text" placeholder="Enter your username" id="username" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control">
+                        <input class="input" type="password" placeholder="Enter your password" id="password" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <button class="button is-primary" type="submit">Log in</button>
+                    </div>
+                </div>
+            </form>
+            <div class="has-text-centered">
+                <a href="/forgot-password">Forgotten password?</a>
+            </div>
+            <div class="has-text-centered">
+                <a href="/signup">Create new account</a>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const SIGNIN_POST_ENDPOINT = 'http://localhost:3001/api/users/signin';
+    
+        // Function to handle user sign in
+        function signinPost(username, password) {
+            console.log('Performing post request to ' + SIGNIN_POST_ENDPOINT);
+            // Make POST request to the API endpoint using Axios
+            return axios.post(SIGNIN_POST_ENDPOINT, {
+                username: username,
+                password: password
+            })
+            .then(response => {
+                console.log('Login response:', response); // Log the response object
+
+                    // Check if response is successful
+                    if (response.status === 200) {
+                        // Check if user_id is present in the response
+                        if (response.data.userId) {
+                            // Set user_id in session storage
+                            sessionStorage.setItem('userId', response.data.userId);
+                            // Set isAuthenticated in session storage
+                            sessionStorage.setItem('isAuthenticated', true);
+                        }
+
+                        // Check if authentication was successful
+                        if (response.data.status === 'success') {
+                            // Update UI or perform other actions for successful login
+                            window.location.href = '/'; // Redirect to home page
+                        } else {
+                            // Handle authentication failure (e.g., display error message)
+                            console.error('Login failed:', response.data.message);
+                        }
+
+                    } else {
+                    // Handle non-200 response status (e.g., display error message)
+                    console.error('Login failed:', response.statusText);
+                        throw new Error('Login failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Login error:', error);
+                    // Handle login error (e.g., display error message)
+                });
+            }
+
+    
+            document.getElementById('loginForm').addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent form submission
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                console.log('Posting username: ' + username + ' and password: ' + password + ' to SIGNIN_POST_ENDPOINT');
+                signinPost(username, password)
+            });
+
+    </script>
+
+</body>
+</html>

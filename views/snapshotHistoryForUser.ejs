@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotional Snapshot History</title>
+    <!-- Include Bulma CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <style>
+        /* Custom styles here */
+    </style>
+</head>
+
+
+<body>
+    <!-- Include the navigation bar partial -->
+    <%- include('./partials/_navbar', { isAuthenticated: isAuthenticated }) %>
+
+        <div id="successBanner" class="notification is-success" style="display: none;">
+            <button class="delete" onclick="closeSuccessBanner()"></button>
+            Snapshot deleted successfully.
+        </div>
+
+        <!-- Edit Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-background" onclick="closeEditModal()"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Edit Contextual Triggers</p>
+                    <button class="delete" aria-label="close" onclick="closeEditModal()"></button>
+                </header>
+                <section class="modal-card-body">
+                    <!-- Dropdown menu for selecting triggers -->
+                    <div class="field">
+                        <label class="label">Select Contextual Triggers</label>
+                        <div class="control">
+                            <div class="select">
+                                <select id="triggerDropdown">
+                                    <option value="" selected disabled>Select a trigger</option>
+                                    <!-- Options will be dynamically populated here -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Display selected triggers -->
+                    <div class="field">
+                        <label class="label">Selected Triggers</label>
+                        <div id="selectedTriggersContainer" class="control selected-triggers-container">
+                            <!-- Selected triggers will be displayed here -->
+                        </div>
+                    </div>
+                </section>
+                <footer class="modal-card-foot">
+                    <button class="button is-success" onclick="saveChanges()">Save Changes</button>
+                    <button class="button" onclick="closeEditModal()">Cancel</button>
+                </footer>
+            </div>
+        </div>
+        <!-- End of Edit Modal -->
+
+        <section class="section">
+            <div class="container">
+                <h1 class="title">Emotional Snapshot History</h1>
+                <div id="snapshotList" class="columns is-multiline">
+                    <!-- Snapshot items will be dynamically added here -->
+                </div>
+            </div>
+        </section>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script>
+            // Function to fetch and display snapshot history
+            async function fetchSnapshotHistoryForUser() {
+                try {
+                    // Retrieve the user ID from your application's authentication mechanism
+                    const userId = getUserId(); // Implement this function to get the user ID
+
+                    // Make a GET request to fetch snapshot history for the authenticated user
+                    const response = await axios.get(`http://localhost:3001/api/snapshots/users/${userId}`);
+
+                    const snapshots = response.data;
+                    const snapshotList = document.getElementById('snapshotList');
+
+                    // Clear existing snapshot items
+                    snapshotList.innerHTML = '';
+
+                    // Iterate over snapshots and create snapshot items
+                    snapshots.forEach(snapshot => {
+                        const snapshotItem = document.createElement('div');
+                        snapshotItem.classList.add('column', 'is-half');
+                        snapshotItem.innerHTML = `
+                        <div class="card">
+                            <div class="card-content">
+                                <p><strong>Snapshot ID:</strong> ${snapshot.snapshot_id}</p>
+                                <p><strong>Timestamp:</strong> ${snapshot.timestamp}</p>
+                                <p><strong>Enjoyment Level:</strong> ${snapshot.enjoyment_level}</p>
+                                <p><strong>Sadness Level:</strong> ${snapshot.sadness_level}</p>
+                                <p><strong>Anger Level:</strong> ${snapshot.anger_level}</p>
+                                <p><strong>Contempt Level:</strong> ${snapshot.contempt_level}</p>
+                                <p><strong>Disgust Level:</strong> ${snapshot.disgust_level}</p>
+                                <p><strong>Fear Level:</strong> ${snapshot.fear_level}</p>
+                                <p><strong>Surprise Level:</strong> ${snapshot.surprise_level}</p>
+                                <p><strong>Contextual Triggers:</strong> ${snapshot.contextualTriggers.join(', ')}</p>
+                                <p><strong>Notes:</strong> ${snapshot.notes}</p>
+                                <div class="buttons mt-3">
+                                    <button class="button is-primary" onclick="editSnapshot(${snapshot.snapshot_id})">Edit</button>
+                                    <button class="button is-danger" onclick="confirmDelete(${snapshot.snapshot_id})">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                        snapshotList.appendChild(snapshotItem);
+                    });
+                } catch (error) {
+                    console.error('Error fetching snapshot history:', error);
+                }
+            }
+
+            // Call fetchSnapshotHistory when the page loads
+            fetchSnapshotHistoryForUser();
+
+            function getUserId() {
+                // Retrieve the user ID from sessionStorage
+                const userId = sessionStorage.getItem('userId');
+
+                // Check if the user ID is available
+                if (userId) {
+                    // User ID is available, return it
+                    return userId;
+                } else {
+                    // User ID is not available, handle the case accordingly (e.g., redirect to login)
+                    // For demonstration purposes, let's return a default value or null
+                    return null;
+                }
+            }
+
+            async function editSnapshot(snapshotId) {
+                // Open the edit modal
+                document.getElementById('editModal').classList.add('is-active');
+                // Set the snapshotId value
+                document.getElementById('snapshotId').value = snapshotId;
+                // Fetch contextual triggers from the API
+                try {
+                    const response = await axios.get('http://localhost:3001/api/snapshots/contextualTriggers');
+                    const triggers = response.data;
+                    // Update the dropdown menu with triggers
+                    updateDropdownMenu(triggers);
+                } catch (error) {
+                    console.error('Error fetching triggers:', error);
+                }
+            }
+
+            function closeEditModal() {
+                // Close the edit modal
+                document.getElementById('editModal').classList.remove('is-active');
+                // Optionally, clear the form fields
+                // document.getElementById('editSnapshotForm').reset();
+            }
+
+            // Function to handle form submission (saving changes)
+            async function saveChanges() {
+                try {
+                    const snapshotId = document.getElementById('snapshotId').value;
+                    const selectedTriggers = Array.from(document.querySelectorAll('.selected-trigger')).map(trigger => trigger.textContent.trim());
+                    // Send a PATCH request to update the snapshot with the selected triggers
+                    await axios.patch(`http://localhost:3001/api/snapshots/${snapshotId}`, { contextualTriggers: selectedTriggers });
+                    // Close the edit modal
+                    closeEditModal();
+                    // Refresh the snapshot list after editing
+                    fetchSnapshotHistoryForUser();
+                    // Show success message if needed
+                    // showSuccessBanner();
+                } catch (error) {
+                    console.error('Error saving changes:', error);
+                }
+            }
+
+            // Function to update the dropdown menu with triggers
+            function updateDropdownMenu(triggers) {
+                const dropdown = document.getElementById('triggerDropdown');
+                // Clear existing options
+                dropdown.innerHTML = '<option value="" selected disabled>Select a trigger</option>';
+                // Add triggers as options
+                triggers.forEach(trigger => {
+                    const option = document.createElement('option');
+                    option.value = trigger.trigger_id; // Assuming trigger_id is used to identify triggers
+                    option.textContent = trigger.trigger_name; // Assuming trigger_name is the name of the trigger
+                    dropdownMenu.appendChild(option);
+                });
+            }
+
+            // Function to add a selected trigger to the display
+            function addSelectedTrigger() {
+                const dropdown = document.getElementById('triggerDropdown');
+                const selectedOption = dropdown.options[dropdown.selectedIndex];
+                if (selectedOption && selectedOption.value) {
+                    const selectedTriggersContainer = document.getElementById('selectedTriggersContainer');
+                    const selectedTrigger = document.createElement('div');
+                    selectedTrigger.classList.add('selected-trigger', 'button', 'is-small', 'is-info', 'mr-2', 'mb-2');
+                    selectedTrigger.textContent = selectedOption.value;
+                    selectedTrigger.onclick = () => removeSelectedTrigger(selectedTrigger);
+                    selectedTriggersContainer.appendChild(selectedTrigger);
+                    // Disable the selected option in the dropdown
+                    selectedOption.disabled = true;
+                }
+            }
+
+            // Function to remove a selected trigger from the display
+            function removeSelectedTrigger(selectedTrigger) {
+                selectedTrigger.remove();
+                const triggerName = selectedTrigger.textContent;
+                // Enable the corresponding option in the dropdown
+                const dropdown = document.getElementById('triggerDropdown');
+                const options = dropdown.options;
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value === triggerName) {
+                        options[i].disabled = false;
+                        break;
+                    }
+                }
+            }
+        </script>
+</body>
+
+</html>

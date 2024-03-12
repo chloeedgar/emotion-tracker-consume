@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Emotional Snapshot</title>
+    <!-- Include Bulma CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <style>
+        /* Custom styling for the progress bar */
+        .progress {
+            width: 100%;
+            background-color: #ddd;
+        }
+
+        .progress .bar {
+            background-color: #007bff;
+            height: 20px;
+            transition: width 0.3s ease-in-out;
+            cursor: pointer;
+            /* Add cursor pointer for drag effect */
+        }
+
+        .selected-triggers-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            /* Adjust the gap between triggers as needed */
+        }
+
+        .selected-trigger {
+            background-color: #f0f0f0;
+            /* Set background color */
+            padding: 4px 8px;
+            /* Adjust padding as needed */
+            border-radius: 4px;
+            /* Add border radius */
+            cursor: pointer;
+        }
+
+        .selected-trigger:hover {
+            background-color: #e0e0e0;
+            /* Change background color on hover */
+        }
+    </style>
+</head>
+
+
+
+<body>
+    <!-- Include the navigation bar partial -->
+    <%- include('./partials/_navbar', { isAuthenticated: isAuthenticated }) %>
+
+        <section class="section">
+            <div class="container">
+                <h1 class="title">Record Emotional Snapshot</h1>
+
+                <!-- Enjoyment Level field -->
+                <div class="field">
+                    <label class="label">Enjoyment: Level <span id="enjoymentLevelValue">5</span></label>
+                    <div id="enjoymentBar" class="progress" onclick="updateLevel(event, 'enjoymentLevelValue')">
+                        <div class="bar" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Sadness Level field -->
+                <div class="field">
+                    <label class="label">Sadness: Level <span id="sadnessLevelValue">5</span></label>
+                    <div id="sadnessBar" class="progress" onclick="updateLevel(event, 'sadnessLevelValue')">
+                        <div class="bar" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Anger Level field -->
+                <div class="field">
+                    <label class="label">Anger: Level <span id="angerLevelValue">5</span></label>
+                    <div id="angerBar" class="progress" onclick="updateLevel(event, 'angerLevelValue')">
+                        <div class="bar" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+
+                <!-- Contempt Level field -->
+                <div class="field">
+                    <label class="label">Contempt: Level <span id="contemptLevelValue">5</span></label>
+                    <div id="contemptBar" class="progress" onclick="updateLevel(event, 'contemptLevelValue')">
+                        <div class="bar" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Disgust Level field -->
+                <div class="field">
+                    <label class="label">Disgust: Level <span id="disgustLevelValue">5</span></label>
+                    <div id="disgustBar" class="progress" onclick="updateLevel(event, 'disgustLevelValue')">
+                        <div class="bar" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Fear Level field -->
+                <div class="field">
+                    <label class="label">Fear: Level <span id="fearLevelValue">5</span></label>
+                    <div id="fearBar" class="progress" onclick="updateLevel(event, 'fearLevelValue')">
+                        <div class="bar" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Surprise Level field -->
+                <div class="field">
+                    <label class="label">Surprise: Level <span id="surpriseLevelValue">5</span></label>
+                    <div id="surpriseBar" class="progress" onclick="updateLevel(event, 'surpriseLevelValue')">
+                        <div class="bar" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Contextual Triggers field -->
+                <div class="field">
+                    <label class="label">Contextual Triggers</label>
+                    <div class="control">
+                        <div class="select">
+                            <select id="triggerDropdown">
+                                <option value="" selected disabled>Select a trigger</option>
+                                <!-- Options will be dynamically populated here -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Selected Triggers</label>
+                    <div id="selectedTriggersContainer" class="control selected-triggers-container">
+                        <!-- Selected triggers will be displayed here -->
+                    </div>
+                </div>
+
+                <!-- Notes field -->
+                <div class="field">
+                    <label class="label">Notes</label>
+                    <div class="control">
+                        <textarea id="notes" class="textarea" placeholder="Enter notes" name="notes"></textarea>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="field">
+                    <div class="control">
+                        <button class="button is-primary" type="button" onclick="submitForm()">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script>
+
+
+            // Function to update the selected level based on click position
+            function updateLevel(event, inputId) {
+                const progressBar = event.currentTarget;
+                const rect = progressBar.getBoundingClientRect();
+                const percentage = (event.clientX - rect.left) / rect.width;
+                const level = Math.round(percentage * 10); // Convert percentage to level (0-10)
+                const bar = progressBar.querySelector('.bar');
+                bar.style.width = percentage * 100 + '%'; // Update progress bar width
+                document.getElementById(inputId).textContent = level; // Update displayed level value
+            }
+
+
+            let selectedTriggerIds = []; // Array to store selected trigger IDs
+
+            // Function to add selected trigger to the list
+            function addSelectedTrigger(triggerId, triggerName) {
+                // Check if the trigger is already selected
+                if (!selectedTriggerIds.includes(triggerId)) {
+                    // Add the trigger ID to the list
+                    selectedTriggerIds.push(triggerId);
+
+                    // Add the trigger to the list of selected triggers
+                    const selectedTriggersContainer = document.getElementById('selectedTriggersContainer');
+                    const selectedTriggerElement = document.createElement('div');
+                    selectedTriggerElement.classList.add('tag', 'is-primary', 'is-light', 'is-medium', 'is-inline-flex', 'mb-1', 'mr-1');
+                    selectedTriggerElement.setAttribute('data-id', triggerId);
+                    selectedTriggerElement.innerHTML = `
+            <span>${triggerName}</span>
+            <button class="delete is-small ml-1" onclick="removeSelectedTrigger(${triggerId})"></button>
+        `;
+                    selectedTriggersContainer.appendChild(selectedTriggerElement);
+                }
+            }
+
+            // Function to remove selected trigger from the list
+            function removeSelectedTrigger(triggerId) {
+                // Remove the trigger ID from the list
+                selectedTriggerIds = selectedTriggerIds.filter(id => id !== triggerId);
+
+                // Remove the trigger from the DOM
+                const selectedTriggerElement = document.querySelector(`[data-id="${triggerId}"]`);
+                if (selectedTriggerElement) {
+                    selectedTriggerElement.remove();
+                }
+            }
+
+            // Function to update the dropdown menu for triggers
+            function updateDropdownMenu(triggers) {
+                const dropdownMenu = document.getElementById('triggerDropdown');
+                dropdownMenu.innerHTML = '';
+
+                // Filter out triggers that are already selected
+                const filteredTriggers = triggers.filter(trigger => !selectedTriggerIds.includes(trigger.trigger_id));
+
+                // Create dropdown options for each trigger
+                filteredTriggers.forEach(trigger => {
+                    const option = document.createElement('option');
+                    option.value = trigger.trigger_id;
+                    option.textContent = trigger.trigger_name;
+                    dropdownMenu.appendChild(option);
+                });
+            }
+
+            // Fetch contextual triggers from the API
+            axios.get('http://localhost:3001/api/snapshots/contextualTriggers')
+                .then(response => {
+                    const triggers = response.data;
+
+                    // Get the dropdown element
+                    const dropdown = document.getElementById('triggerDropdown');
+
+                    // Populate the dropdown with trigger options
+                    triggers.forEach(trigger => {
+                        const option = document.createElement('option');
+                        option.value = trigger.trigger_id;
+                        option.textContent = trigger.trigger_name;
+                        dropdown.appendChild(option);
+                    });
+
+                    // Add event listener for dropdown change
+                    dropdown.addEventListener('change', (event) => {
+                        const selectedOption = event.target.options[event.target.selectedIndex];
+                        const triggerId = selectedOption.value;
+                        const triggerName = selectedOption.textContent;
+
+                        // Add selected trigger to the list
+                        addSelectedTrigger(triggerId, triggerName);
+
+                        // Reset dropdown to default option
+                        dropdown.selectedIndex = 0;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching triggers:', error);
+                });
+
+
+
+            // Function to submit form data
+            function submitForm() {
+                const userId = getUserIdFromSessionStorage();
+
+                // Map selected trigger IDs to their names
+                const selectedTriggerNames = selectedTriggerIds.map(triggerId => {
+                    const option = document.querySelector(`#triggerDropdown option[value="${triggerId}"]`);
+                    return option.textContent;
+                });
+
+                // Get form data
+                const formData = {
+                    enjoymentLevel: parseInt(document.getElementById('enjoymentLevelValue').textContent),
+                    sadnessLevel: parseInt(document.getElementById('sadnessLevelValue').textContent),
+                    angerLevel: parseInt(document.getElementById('angerLevelValue').textContent),
+                    contemptLevel: parseInt(document.getElementById('contemptLevelValue').textContent),
+                    disgustLevel: parseInt(document.getElementById('disgustLevelValue').textContent),
+                    fearLevel: parseInt(document.getElementById('fearLevelValue').textContent),
+                    surpriseLevel: parseInt(document.getElementById('surpriseLevelValue').textContent),
+                    contextualTriggers: selectedTriggerNames,
+                    notes: document.getElementById('notes').value,
+                    user_id: parseInt(userId) // Include user ID in the request body
+                };
+                console.log('Form data:', formData); //debug logging
+
+
+                // Set up request headers with authorization cookie
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userId}` // Assuming your authorization cookie is JWT token
+                };
+                console.log('Request headers:', headers); //debug logging
+
+
+                // Make POST request to submit form data
+                axios.post('http://localhost:3001/api/snapshots', formData, { headers })
+                    .then(response => {
+                        // Handle successful response
+                        console.log('Snapshot created successfully:', response.data);
+                    })
+                    .catch(error => {
+                        // Handle error
+                        console.error('Error creating snapshot:', error);
+                    });
+            }
+
+            function getUserIdFromSessionStorage() {
+                // Retrieve the user ID from session storage
+                const userId = sessionStorage.getItem('userId');
+
+                // Check if the user ID is available
+                if (userId) {
+                    // User ID is available, log and return it
+                    console.log('User ID retrieved from session storage:', userId);
+                    return userId;
+                } else {
+                    // User ID is not available, log and return null
+                    console.log('User ID not found in session storage');
+                    return null;
+                }
+            }
+
+        </script>
+</body>
+
+</html>
