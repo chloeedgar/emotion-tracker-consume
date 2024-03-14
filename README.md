@@ -28,6 +28,7 @@ Open your browser and navigate to http://localhost:3000 to view the application.
 ### Technologies Used
 - [Axios](https://axios-http.com/) - Promise-based HTTP client for the browser and Node.js
 - [Chart.js](https://www.chartjs.org/) - JavaScript library for creating interactive charts
+- [Bulma](https://bulma.io/) - A modern CSS framework based on Flexbox.
 - [cors](https://www.npmjs.com/package/cors) - Middleware for enabling CORS (Cross-Origin Resource Sharing)
 - [dotenv](https://www.npmjs.com/package/dotenv) - Module for loading environment variables from a .env file
 - [ejs](https://ejs.co/) - Embedded JavaScript templating
