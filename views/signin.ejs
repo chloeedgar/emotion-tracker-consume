@@ -72,7 +72,7 @@
                     password: password
                 })
                     .then(response => {
-                        console.log('Login response:', response); // Log the response object
+                        console.log('Login response:', response);
 
                         // Check if response is successful
                         if (response.status === 200) {
@@ -82,30 +82,26 @@
                                 sessionStorage.setItem('userId', response.data.userId);
                                 // Set isAuthenticated in session storage
                                 sessionStorage.setItem('isAuthenticated', true);
-
                                 const token = response.data.token;
                                 sessionStorage.setItem('sessionToken', token);
 
                             }
-
                             // Check if authentication was successful
                             if (response.data.status === 'success') {
-                                // Update UI or perform other actions for successful login
                                 window.location.href = '/'; // Redirect to home page
                             } else {
-                                // Handle authentication failure (e.g., display error message)
                                 console.error('Login failed:', response.data.message);
                             }
 
                         } else {
-                            // Handle non-200 response status (e.g., display error message)
+                            // Handle non-200 response status
                             console.error('Login failed:', response.statusText);
                             throw new Error('Login failed');
                         }
                     })
                     .catch(error => {
                         console.error('Login error:', error);
-                        // Handle login error (e.g., display error message)
+                        // Handle login error
                         document.getElementById('errorMessage').textContent = 'Login error: ' + error.message;
                         document.getElementById('errorMessage').style.display = 'block';
                     });

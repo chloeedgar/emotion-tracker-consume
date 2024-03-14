@@ -38,9 +38,10 @@
         .selected-trigger:hover {
             background-color: #e0e0e0;
         }
+
         .container {
-            margin-top: 90px; 
-            margin-bottom: 90px; 
+            margin-top: 90px;
+            margin-bottom: 90px;
         }
     </style>
 </head>
@@ -265,9 +266,9 @@
                 // Check if userId is available
                 if (!userId) {
                     // userId is not available, do not proceed with form submission
-                    // display error message and redirect to the login page
                     const errorMessage = 'You need to be logged in to create a snapshot. Redirecting to login page...';
                     console.error(errorMessage);
+                    // display error message and redirect to the login page
                     displayErrorMessage(errorMessage);
                     setTimeout(() => {
                         window.location.href = '/signin';

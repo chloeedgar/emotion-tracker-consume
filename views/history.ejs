@@ -157,8 +157,6 @@
                     // User ID is available, return it
                     return userId;
                 } else {
-                    // User ID is not available, handle the case accordingly (e.g., redirect to login)
-                    // For demonstration purposes, let's return a default value or null
                     return null;
                 }
             }
@@ -192,8 +190,6 @@
             function closeEditModal() {
                 // Close the edit modal
                 document.getElementById('editModal').classList.remove('is-active');
-                // Optionally, clear the form fields
-                // document.getElementById('editSnapshotForm').reset();
             }
 
             // Function to handle form submission (saving changes)
@@ -234,9 +230,9 @@
                 // Add triggers as options
                 triggers.forEach(trigger => {
                     const option = document.createElement('option');
-                    option.value = trigger.trigger_id; // Assuming trigger_id is used to identify triggers
-                    option.textContent = trigger.trigger_name; // Assuming trigger_name is the name of the trigger
-                    dropdown.appendChild(option); // Change dropdownMenu to dropdown
+                    option.value = trigger.trigger_id; 
+                    option.textContent = trigger.trigger_name; 
+                    dropdown.appendChild(option); 
                 });
             }
 
