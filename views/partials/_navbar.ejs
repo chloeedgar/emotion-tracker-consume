@@ -1,7 +1,25 @@
-<nav class="navbar" role="navigation" aria-label="main navigation">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .hidden {
+      display: none;
+    }
+
+    .error-message {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
       <a class="navbar-item" href="/">
-        <img src="/path/to/logo.png" alt="Logo">
+        <img src="/imgs/lovemind-logo2.png" alt="Logo">
       </a>
       <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
         <span aria-hidden="true"></span>
@@ -11,35 +29,77 @@
     </div>
     <div id="navbarMenu" class="navbar-menu">
       <div class="navbar-start">
+
         <a class="navbar-item" href="/">Home</a>
         <a class="navbar-item" href="/snapshots/record-snapshot">Record</a>
         <a class="navbar-item" href="/snapshots/history">History</a>
         <a class="navbar-item" href="/snapshots/trends">Trends</a>
       </div>
       <div class="navbar-end">
-
-        <script>
-            const isAuthenticatedString = sessionStorage.getItem('isAuthenticated');
-  const isAuthenticated = isAuthenticatedString === 'true'; // Convert string to boolean
-  console.log('isAuthenticated:   ' + isAuthenticated);
-      </script>
-      
-      <!-- Conditional rendering based on session -->
-        <% if (isAuthenticated) { %>
-        <!-- Display these items if user is logged in -->
-          <div class="navbar-item">
-            <form action="/signout" method="GET">
-              <button type="submit" class="button is-danger">Sign Out</button>
-            </form>
-          </div>
-        <% } else { %>
-          <div class="navbar-item">
-            <a class="button is-primary" href="/signin">Sign In</a>
-          </div>
-          <div class="navbar-item">
-            <a class="button is-light" href="/signup">Sign Up</a>
-          </div>
-        <% } %>
+        <!-- Conditional rendering based on JWT token -->
+        <div id="signinBtn" class="navbar-item hidden">
+          <a class="button is-primary" href="/signin">Sign In</a>
+        </div>
+        <div id="signupBtn" class="navbar-item hidden">
+          <a class="button is-light" href="/signup">Sign Up</a>
+        </div>
+        <div id="signoutBtn" class="navbar-item hidden">
+          <button class="button is-danger">Sign Out</button>
+        </div>
       </div>
     </div>
   </nav>
+
+  <div id="errorMessage" class="error-message hidden"></div>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    // Retrieve isAuthenticated value from sessionStorage
+    const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
+
+    // Toggle visibility of navbar items based on isAuthenticated
+    if (isAuthenticated) {
+      document.getElementById('signinBtn').classList.add('hidden');
+      document.getElementById('signupBtn').classList.add('hidden');
+      document.getElementById('signoutBtn').classList.remove('hidden');
+    } else {
+      document.getElementById('signinBtn').classList.remove('hidden');
+      document.getElementById('signupBtn').classList.remove('hidden');
+      document.getElementById('signoutBtn').classList.add('hidden');
+    }
+
+    // Sign out button click event listener
+    document.getElementById('signoutBtn').addEventListener('click', function () {
+      // Make a GET request to the sign-out endpoint using Axios
+      axios.get('http://localhost:3001/api/users/signout')
+        .then(response => {
+          // Clear session data from sessionStorage
+          sessionStorage.removeItem('isAuthenticated');
+          sessionStorage.removeItem('userId');
+          // Redirect to the sign-in page or perform any other actions
+          window.location.href = '/signin';
+        })
+        .catch(error => {
+          console.error('Sign out error:', error);
+          displayErrorMessage('Failed to sign out. Please try again later.');
+        });
+    });
+
+    // Function to display error message
+    function displayErrorMessage(message) {
+      const errorMessageElement = document.getElementById('errorMessage');
+      errorMessageElement.textContent = message;
+      errorMessageElement.classList.remove('hidden');
+    }
+
+    // Function to hide error message
+    function hideErrorMessage() {
+      const errorMessageElement = document.getElementById('errorMessage');
+      errorMessageElement.textContent = '';
+      errorMessageElement.classList.add('hidden');
+    }
+
+  </script>
+</body>
+
+</html>

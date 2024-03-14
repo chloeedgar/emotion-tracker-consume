@@ -46,11 +46,20 @@
     </style>
 </head>
 
-
-
 <body>
     <!-- Include the navigation bar partial -->
-    <%- include('./partials/_navbar', { isAuthenticated: isAuthenticated }) %>
+    <%- include('./partials/_navbar') %>
+
+        <!-- Success banner -->
+        <div id="successBanner" class="notification is-success" style="display: none;">
+            <button class="delete" onclick="closeSuccessBanner()"></button>
+            Snapshot created successfully.
+        </div>
+
+        <!-- Error message container -->
+        <div id="errorMessage" class="notification is-danger hidden" style="margin-top: 20px;">
+            <button class="delete" onclick="this.parentElement.classList.add('hidden')"></button>
+        </div>
 
         <section class="section">
             <div class="container">
@@ -182,7 +191,7 @@
                     selectedTriggerElement.setAttribute('data-id', triggerId);
                     selectedTriggerElement.innerHTML = `
             <span>${triggerName}</span>
-            <button class="delete is-small ml-1" onclick="removeSelectedTrigger(${triggerId})"></button>
+            <button class="delete is-small ml-1" onclick="removeSelectedTrigger('${triggerId}')"></button>
         `;
                     selectedTriggersContainer.appendChild(selectedTriggerElement);
                 }
@@ -291,6 +300,11 @@
                     .then(response => {
                         // Handle successful response
                         console.log('Snapshot created successfully:', response.data);
+                        showSuccessBanner();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1400);
+            
                     })
                     .catch(error => {
                         // Handle error
@@ -308,13 +322,40 @@
                     console.log('User ID retrieved from session storage:', userId);
                     return userId;
                 } else {
-                    // User ID is not available, log and return null
-                    console.log('User ID not found in session storage');
+                    // User ID is not available, display error message and redirect to the login page
+                    const errorMessage = 'You need to be logged in to create a snapshot. Redirecting to login page...';
+                    console.error(errorMessage);
+                    displayErrorMessage(errorMessage);
+                    setTimeout(() => {
+                        window.location.href = '/signin';
+                    }, 1700);
                     return null;
                 }
             }
 
+            // Function to display success banner
+            function showSuccessBanner() {
+                const successBanner = document.getElementById('successBanner');
+                successBanner.style.display = 'block';
+            }
+
+            // Function to close the success banner
+            function closeSuccessBanner() {
+                const successBanner = document.getElementById('successBanner');
+                successBanner.style.display = 'none';
+            }
+
+            // Function to display error message
+            function displayErrorMessage(message) {
+                const errorMessageElement = document.getElementById('errorMessage');
+                errorMessageElement.textContent = message;
+                errorMessageElement.classList.remove('hidden');
+            }
+
         </script>
 </body>
+
+<!-- Footer -->
+<%- include('./partials/_footer') %>
 
 </html>

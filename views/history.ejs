@@ -15,7 +15,7 @@
 
 <body>
     <!-- Include the navigation bar partial -->
-    <%- include('./partials/_navbar', { isAuthenticated: isAuthenticated }) %>
+    <%- include('./partials/_navbar') %>
 
         <div id="successBanner" class="notification is-success" style="display: none;">
             <button class="delete" onclick="closeSuccessBanner()"></button>
@@ -30,13 +30,16 @@
                     <p class="modal-card-title">Edit Contextual Triggers</p>
                     <button class="delete" aria-label="close" onclick="closeEditModal()"></button>
                 </header>
+                <!-- Inside the modal body -->
                 <section class="modal-card-body">
+                    <!-- Add an input field with the id 'snapshotId' -->
+                    <input type="hidden" id="snapshotId">
                     <!-- Dropdown menu for selecting triggers -->
                     <div class="field">
                         <label class="label">Select Contextual Triggers</label>
                         <div class="control">
                             <div class="select">
-                                <select id="triggerDropdown">
+                                <select id="triggerDropdown" onchange="addSelectedTrigger()">
                                     <option value="" selected disabled>Select a trigger</option>
                                     <!-- Options will be dynamically populated here -->
                                 </select>
@@ -68,17 +71,27 @@
                 </div>
             </div>
         </section>
-
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         <script>
             // Function to fetch and display snapshot history
             async function fetchSnapshotHistoryForUser() {
                 try {
-                    // Retrieve the user ID from your application's authentication mechanism
-                    const userId = getUserId(); // Implement this function to get the user ID
+                    const userId = getUserIdFromSessionStorage();
+
+                    // Check if user is authenticated
+                    if (!userId) {
+                        // User is not authenticated, display error message and redirect to login
+                        displayErrorMessage('You are not logged in. Please sign in to view snapshot history.');
+                        setTimeout(() => {
+                            window.location.href = '/signin'; // Redirect to login page after 3 seconds
+                        }, 3000);
+                        return; // Prevent further execution
+                    }
 
                     // Make a GET request to fetch snapshot history for the authenticated user
-                    const response = await axios.get(`http://localhost:3001/api/snapshots/users/${userId}`);
+                    const response = await axios.get(`http://localhost:3001/api/snapshots/users/${userId}`, {
+                        withCredentials: true // Include credentials (cookies) in the request
+                    });
 
                     const snapshots = response.data;
                     const snapshotList = document.getElementById('snapshotList');
@@ -121,9 +134,10 @@
             // Call fetchSnapshotHistory when the page loads
             fetchSnapshotHistoryForUser();
 
-            function getUserId() {
+            function getUserIdFromSessionStorage() {
                 // Retrieve the user ID from sessionStorage
                 const userId = sessionStorage.getItem('userId');
+                console.log('userId received from session: ' + userId);
 
                 // Check if the user ID is available
                 if (userId) {
@@ -142,6 +156,11 @@
                 // Set the snapshotId value
                 document.getElementById('snapshotId').value = snapshotId;
                 // Fetch contextual triggers from the API
+
+                // Clear the selected triggers list
+                clearSelectedTriggers();
+
+                // Fetch contextual triggers from the API
                 try {
                     const response = await axios.get('http://localhost:3001/api/snapshots/contextualTriggers');
                     const triggers = response.data;
@@ -150,6 +169,11 @@
                 } catch (error) {
                     console.error('Error fetching triggers:', error);
                 }
+            }
+
+            function clearSelectedTriggers() {
+                const selectedTriggersContainer = document.getElementById('selectedTriggersContainer');
+                selectedTriggersContainer.innerHTML = ''; // Clear the contents of the selected triggers container
             }
 
             function closeEditModal() {
@@ -163,19 +187,28 @@
             async function saveChanges() {
                 try {
                     const snapshotId = document.getElementById('snapshotId').value;
+                    console.log('Snapshot ID:', snapshotId);
+
                     const selectedTriggers = Array.from(document.querySelectorAll('.selected-trigger')).map(trigger => trigger.textContent.trim());
+                    console.log('Selected Triggers:', selectedTriggers);
+
                     // Send a PATCH request to update the snapshot with the selected triggers
+                    console.log('Sending PATCH request...');
                     await axios.patch(`http://localhost:3001/api/snapshots/${snapshotId}`, { contextualTriggers: selectedTriggers });
+                    console.log('PATCH request successful.');
+
                     // Close the edit modal
                     closeEditModal();
+
                     // Refresh the snapshot list after editing
+                    console.log('Refreshing snapshot history...');
                     fetchSnapshotHistoryForUser();
-                    // Show success message if needed
-                    // showSuccessBanner();
+
                 } catch (error) {
                     console.error('Error saving changes:', error);
                 }
             }
+
 
             // Function to update the dropdown menu with triggers
             function updateDropdownMenu(triggers) {
@@ -187,9 +220,10 @@
                     const option = document.createElement('option');
                     option.value = trigger.trigger_id; // Assuming trigger_id is used to identify triggers
                     option.textContent = trigger.trigger_name; // Assuming trigger_name is the name of the trigger
-                    dropdownMenu.appendChild(option);
+                    dropdown.appendChild(option); // Change dropdownMenu to dropdown
                 });
             }
+
 
             // Function to add a selected trigger to the display
             function addSelectedTrigger() {
@@ -199,7 +233,7 @@
                     const selectedTriggersContainer = document.getElementById('selectedTriggersContainer');
                     const selectedTrigger = document.createElement('div');
                     selectedTrigger.classList.add('selected-trigger', 'button', 'is-small', 'is-info', 'mr-2', 'mb-2');
-                    selectedTrigger.textContent = selectedOption.value;
+                    selectedTrigger.textContent = selectedOption.textContent; // Change to trigger name
                     selectedTrigger.onclick = () => removeSelectedTrigger(selectedTrigger);
                     selectedTriggersContainer.appendChild(selectedTrigger);
                     // Disable the selected option in the dropdown
@@ -221,7 +255,42 @@
                     }
                 }
             }
+
+            // Function to delete a snapshot
+            async function deleteSnapshot(snapshotId) {
+                try {
+                    // Make a DELETE request to delete the snapshot
+                    await axios.delete(`http://localhost:3001/api/snapshots/${snapshotId}`);
+                    // Show success banner
+                    showSuccessBanner();
+                    // Refresh the snapshot list after deletion
+                    fetchSnapshotHistoryForUser();
+                } catch (error) {
+                    console.error('Error deleting snapshot:', error);
+                }
+            }
+
+            // Function to confirm snapshot deletion
+            function confirmDelete(snapshotId) {
+                // Ask for confirmation before deleting the snapshot
+                if (confirm("Are you sure you want to delete this snapshot?")) {
+                    // If user confirms, proceed with deletion
+                    deleteSnapshot(snapshotId);
+                }
+            }
+            // Function to close the success banner
+            function closeSuccessBanner() {
+                document.getElementById('successBanner').style.display = 'none';
+            }
+
+            // Function to display the success banner
+            function showSuccessBanner() {
+                document.getElementById('successBanner').style.display = 'block';
+            }
         </script>
 </body>
+
+<!-- Footer -->
+<%- include('./partials/_footer') %>
 
 </html>

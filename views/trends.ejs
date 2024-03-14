@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Summary Visualization</title>
+    <!-- Include Bulma CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include Date-fns library and adapter for Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.27.0/index.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        #emotionChartContainer {
+            padding: 100px;
+            /* Adjust the padding as needed */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Include the navigation bar partial -->
+    <%- include('./partials/_navbar') %>
+
+        <!-- Success banner -->
+        <div id="successBanner" class="notification is-success" style="display: none;">
+            <button class="delete" onclick="closeSuccessBanner()"></button>
+            Snapshot created successfully.
+        </div>
+
+        <!-- Error message container -->
+        <div id="errorMessage" class="notification is-danger hidden" style="margin-top: 20px;">
+            <button class="delete" onclick="this.parentElement.classList.add('hidden')"></button>
+        </div>
+
+        <div id="emotionChartContainer"> <!-- Container with padding -->
+            <canvas id="emotionChart" width="800" height="400"></canvas>
+        </div>
+
+        <script>
+            const userId = getUserIdFromSessionStorage();
+            // Check if user is authenticated
+            if (!userId) {
+                // User is not authenticated, display error message and redirect to login
+                displayErrorMessage('You are not logged in. Please sign in to view snapshot history.');
+                setTimeout(() => {
+                    window.location.href = '/signin'; // Redirect to login page after 3 seconds
+                }, 3000);
+            }
+            // Fetch data from the API endpoint
+            axios.get(`http://localhost:3001/api/snapshots/users/${userId}`)
+                .then(response => {
+                    // Process the fetched data
+                    const data = response.data;
+
+                    console.log('Snapshot data:', data);
+
+                    const timestamps = data.map(snapshot => snapshot.timestamp);
+
+                    // Format the timestamps array
+                    const formattedTimestamps = [];
+                    timestamps.forEach(timestamp => {
+                        const formattedDate = new Date(timestamp).toLocaleDateString('en-GB', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        formattedTimestamps.push(formattedDate);
+                    });
+                    console.log('Timestamps:', timestamps);
+
+
+                    // const formattedTimestamps = timestamps.map(timestamp => {
+                    //     const date = new Date(timestamp);
+                    //     return new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' }).format(date);
+                    // });
+
+                    console.log('formattedTimestamps:', formattedTimestamps);
+                    const enjoymentLevels = data.map(snapshot => snapshot.enjoyment_level);
+                    const sadnessLevels = data.map(snapshot => snapshot.sadness_level);
+                    const angerLevels = data.map(snapshot => snapshot.anger_level);
+                    const contemptLevels = data.map(snapshot => snapshot.contempt_level);
+                    const disgustLevels = data.map(snapshot => snapshot.disgust_level);
+                    const fearLevels = data.map(snapshot => snapshot.fear_level);
+                    const surpriseLevels = data.map(snapshot => snapshot.surprise_level);
+
+                    console.log(enjoymentLevels); //debug
+                    console.log(sadnessLevels); //debug
+                    console.log(angerLevels); //debug
+                    console.log(contemptLevels); //debug
+                    console.log(disgustLevels); //debug
+                    console.log(fearLevels); //debug
+                    console.log(surpriseLevels); //debug
+
+                    // Create a Chart.js line chart
+                    const ctx = document.getElementById('emotionChart').getContext('2d');
+
+                    const config = {
+                        type: 'line',
+                        data: {
+                            labels: formattedTimestamps,
+                            datasets: [
+                                {
+                                    label: 'Enjoyment Level',
+                                    data: enjoymentLevels,
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                },
+                                {
+                                    label: 'Sadness Level',
+                                    data: sadnessLevels,
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                },
+                                {
+                                    label: 'Anger Level',
+                                    data: angerLevels,
+                                    borderColor: 'rgba(255, 206, 86, 1)',
+                                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                                },
+                                {
+                                    label: 'Contempt Level',
+                                    data: contemptLevels,
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                },
+                                {
+                                    label: 'Disgust Level',
+                                    data: disgustLevels,
+                                    borderColor: 'rgba(153, 102, 255, 1)',
+                                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                                },
+                                {
+                                    label: 'Fear Level',
+                                    data: fearLevels,
+                                    borderColor: 'rgba(255, 159, 64, 1)',
+                                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                                },
+                                {
+                                    label: 'Surprise Level',
+                                    data: surpriseLevels,
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                },
+                            ]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    type: 'time',
+                                    time: {
+                                        unit: 'week',
+                                        displayFormats: {
+                                            day: 'MMM D' // Format for displaying dates on the x-axis
+                                        }
+                                    },
+                                    ticks: {
+                                        autoSkip: true,
+                                        maxTicksLimit: 10, // Limit the number of visible ticks on the x-axis
+                                        source: 'auto' // Set ticks source to 'auto', 'data', or 'labels'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true, // Start y-axis at zero
+                                    max: 10, // Maximum value for the y-axis
+                                    ticks: {
+                                        stepSize: 1 // Display ticks at intervals of 1
+                                    },
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Emotion Level' // Label for the y-axis
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    const myChart = new Chart(ctx, config);
+                    console.log(myChart);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+
+
+
+            function getUserIdFromSessionStorage() {
+                const userId = sessionStorage.getItem('userId');
+                console.log('User ID:', userId);
+                return userId;
+            }
+
+            function displayErrorMessage(message) {
+                const errorMessageElement = document.getElementById('errorMessage');
+                errorMessageElement.textContent = message;
+                errorMessageElement.classList.remove('hidden');
+            }
+        </script>
+</body>
+
+<!-- Footer -->
+<%- include('./partials/_footer') %>
+
+</html>

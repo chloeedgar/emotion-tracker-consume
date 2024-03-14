@@ -12,108 +12,141 @@
 </head>
 <body>
     <!-- Navbar -->
-    <%- include('./partials/_navbar', { isAuthenticated: isAuthenticated }) %>
-
-   <!-- Check if there's a success message from sign-up -->
-    <!-- <% if (locals.hasOwnProperty('successMessage')) { %>
-        <div class="notification is-success">
-            <%= successMessage %>
+    <%- include('./partials/_navbar') %>
+        <div id="errorMessage" class="has-text-centered" style="color: red; display: none;"></div>
+        <!-- Error message container -->
+        <div id="successBanner" class="notification is-success" style="display: none;">
+            Login successful. Redirecting to home page...
         </div>
-    <% } %> -->
-    <!-- <% if (locals.hasOwnProperty('success')) { %>
-        <div class="notification is-success">
-            <%= success %>
-        </div>
-    <% } %> -->
 
-    <section class="section">
-        <div class="container">
-            <h1 class="title">Login Here</h1>
-            <form id="loginForm">
-                <div class="field">
-                    <label class="label">Username</label>
-                    <div class="control">
-                        <input class="input" type="text" placeholder="Enter your username" id="username" required>
+        <section class="section">
+            <div class="container">
+                <h1 class="title">Login Here</h1>
+                <form id="loginForm">
+                    <div class="field">
+                        <label class="label">Username</label>
+                        <div class="control">
+                            <input class="input" type="text" placeholder="Enter your username" id="username" required>
+                        </div>
                     </div>
-                </div>
-                <div class="field">
-                    <label class="label">Password</label>
-                    <div class="control">
-                        <input class="input" type="password" placeholder="Enter your password" id="password" required>
+                    <div class="field">
+                        <label class="label">Password</label>
+                        <div class="control">
+                            <input class="input" type="password" placeholder="Enter your password" id="password"
+                                required>
+                        </div>
                     </div>
-                </div>
-                <div class="field">
-                    <div class="control">
-                        <button class="button is-primary" type="submit">Log in</button>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-primary" type="submit">Log in</button>
+                        </div>
                     </div>
+                </form>
+                <div class="has-text-centered">
+                    <a href="/forgot-password">Forgotten password?</a>
                 </div>
-            </form>
-            <div class="has-text-centered">
-                <a href="/forgot-password">Forgotten password?</a>
+                <div class="has-text-centered">
+                    <a href="/signup">Create new account</a>
+                </div>
             </div>
-            <div class="has-text-centered">
-                <a href="/signup">Create new account</a>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script>
-        const SIGNIN_POST_ENDPOINT = 'http://localhost:3001/api/users/signin';
-    
-        // Function to handle user sign in
-        function signinPost(username, password) {
-            console.log('Performing post request to ' + SIGNIN_POST_ENDPOINT);
-            // Make POST request to the API endpoint using Axios
-            return axios.post(SIGNIN_POST_ENDPOINT, {
-                username: username,
-                password: password
-            })
-            .then(response => {
-                console.log('Login response:', response); // Log the response object
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script>
+            const SIGNIN_ENDPOINT = 'http://localhost:3001/api/users/signin';
 
-                    // Check if response is successful
-                    if (response.status === 200) {
-                        // Check if user_id is present in the response
-                        if (response.data.userId) {
-                            // Set user_id in session storage
-                            sessionStorage.setItem('userId', response.data.userId);
-                            // Set isAuthenticated in session storage
-                            sessionStorage.setItem('isAuthenticated', true);
-                        }
-
-                        // Check if authentication was successful
-                        if (response.data.status === 'success') {
-                            // Update UI or perform other actions for successful login
-                            window.location.href = '/'; // Redirect to home page
-                        } else {
-                            // Handle authentication failure (e.g., display error message)
-                            console.error('Login failed:', response.data.message);
-                        }
-
-                    } else {
-                    // Handle non-200 response status (e.g., display error message)
-                    console.error('Login failed:', response.statusText);
-                        throw new Error('Login failed');
-                    }
+            // Function to handle user sign in
+            function signinPost(username, password) {
+                console.log('Performing post request to ' + SIGNIN_ENDPOINT);
+                // Make POST request to the API endpoint using Axios
+                return axios.post(SIGNIN_ENDPOINT, {
+                    username: username,
+                    password: password
                 })
-                .catch(error => {
-                    console.error('Login error:', error);
-                    // Handle login error (e.g., display error message)
-                });
+                    .then(response => {
+                        console.log('Login response:', response); // Log the response object
+
+                        // Check if response is successful
+                        if (response.status === 200) {
+                            // Check if user_id is present in the response
+                            if (response.data.userId) {
+                                // Set user_id in session storage
+                                sessionStorage.setItem('userId', response.data.userId);
+                                // Set isAuthenticated in session storage
+                                sessionStorage.setItem('isAuthenticated', true);
+                                sessionStorage.setItem('username',username);
+                            }
+
+                            // Check if authentication was successful
+                            if (response.data.status === 'success') {
+                                // Update UI or perform other actions for successful login
+                                window.location.href = '/'; // Redirect to home page
+                            } else {
+                                // Handle authentication failure (e.g., display error message)
+                                console.error('Login failed:', response.data.message);
+                            }
+                            // .then(response => {
+                            //     console.log('Login response:', response); // Log the response object
+                            // // Check if response is successful
+                            // if (response.status === 200) {
+                            //     // Check if JWT token is present in the response
+                            //     if (response.data.token) {
+                            //         // Store JWT token in local storage
+                            //         localStorage.setItem('token', response.data.token);
+
+                            //         console.log('Token has been set successfully: ' + localStorage.getItem('token')); //Debug
+
+                            //         // Check if userId is present in the response
+                            //         if (response.data.userId) {
+                            //             // Store userId in local storage
+                            //             localStorage.setItem('userId', response.data.userId);
+                            //             console.log('User ID has been set successfully: ' + localStorage.getItem('userId')); // Debug
+                            //         }
+                            //     }
+
+                            //     // Check if authentication was successful
+                            //     if (response.data.status === 'success') {
+                            //         // Update UI or perform other actions for successful login
+                            //         document.getElementById('successBanner').style.display = 'block';
+                            //         setTimeout(() => {
+                            //             window.location.href = '/'; // Redirect to home page after 3 seconds  debug
+                            //         }, 1700);
+                            //     } else {
+                            //         // Handle authentication failure (e.g., display error message)
+                            //         console.error('Login failed:', response.data.message);
+                            //         document.getElementById('errorMessage').textContent = response.data.message;
+                            //         document.getElementById('errorMessage').style.display = 'block';
+
+                            //     }
+                        } else {
+                            // Handle non-200 response status (e.g., display error message)
+                            console.error('Login failed:', response.statusText);
+                            throw new Error('Login failed');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Login error:', error);
+                        // Handle login error (e.g., display error message)
+                        document.getElementById('errorMessage').textContent = 'Login error: ' + error.message;
+                        document.getElementById('errorMessage').style.display = 'block';
+                    });
             }
 
-    
-            document.getElementById('loginForm').addEventListener('submit', function(event) {
+
+            document.getElementById('loginForm').addEventListener('submit', function (event) {
                 event.preventDefault(); // Prevent form submission
-                
+
                 const username = document.getElementById('username').value;
                 const password = document.getElementById('password').value;
                 console.log('Posting username: ' + username + ' and password: ' + password + ' to SIGNIN_POST_ENDPOINT');
                 signinPost(username, password)
             });
 
-    </script>
+        </script>
 
+
+     <!-- Footer -->
+     <%- include('./partials/_footer') %>
 </body>
+
 </html>
