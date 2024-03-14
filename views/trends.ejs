@@ -23,7 +23,7 @@
 </head>
 
 <body>
-    <!-- Include the navigation bar partial -->
+    <!-- Navbar -->
     <%- include('./partials/_navbar') %>
 
         <!-- Success banner -->
@@ -51,8 +51,10 @@
                     window.location.href = '/signin'; // Redirect to login page after 3 seconds
                 }, 3000);
             }
+            const headers = getHeaders();
+
             // Fetch data from the API endpoint
-            axios.get(`http://localhost:3001/api/snapshots/users/${userId}`)
+            axios.get(`http://localhost:3001/api/snapshots/users/${userId}`, {headers})
                 .then(response => {
                     // Process the fetched data
                     const data = response.data;
@@ -187,7 +189,14 @@
                     console.error('Error fetching data:', error);
                 });
 
-
+            // Function to get headers with authorization token
+            function getHeaders() {
+                const userId = getUserIdFromSessionStorage();
+                return {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userId}`
+                };
+            }
 
             function getUserIdFromSessionStorage() {
                 const userId = sessionStorage.getItem('userId');

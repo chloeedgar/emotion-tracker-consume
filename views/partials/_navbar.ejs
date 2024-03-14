@@ -19,7 +19,7 @@
   <nav class="navbar" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
       <a class="navbar-item" href="/">
-        <img src="/imgs/lovemind-logo2.png" alt="Logo">
+        <img src="/imgs/lovemind-logo2.png" alt="Logo">   <!-- purposely not showing logo as looks bad -->
       </a>
       <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
         <span aria-hidden="true"></span>
@@ -54,6 +54,28 @@
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
   <script>
+    // Function to toggle visibility of navbar menu
+    document.addEventListener('DOMContentLoaded', function () {
+      // Get all "navbar-burger" elements
+      const navbarBurgers = Array.from(document.querySelectorAll('.navbar-burger'));
+
+      // Check if there are any navbar burgers
+      if (navbarBurgers.length > 0) {
+        // Add a click event listener to each burger
+        navbarBurgers.forEach(function (el) {
+          el.addEventListener('click', function () {
+            // Get the target from the "data-target" attribute
+            const target = el.dataset.target;
+            const targetElement = document.getElementById(target);
+
+            // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+            el.classList.toggle('is-active');
+            targetElement.classList.toggle('is-active');
+          });
+        });
+      }
+    });
+
     // Retrieve isAuthenticated value from sessionStorage
     const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
 

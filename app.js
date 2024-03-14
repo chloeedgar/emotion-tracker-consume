@@ -8,8 +8,6 @@ const session = require('express-session');
 const cors = require('cors');
 const axios = require('axios'); // Import Axios
 
-//const isAuthenticated = require('./middleware');
-
 const app = express();
 
 // Set 'views' directory for EJS templates
@@ -21,8 +19,6 @@ app.use(morgan('tiny')); // Logging middleware
 app.use(express.static(path.join(__dirname, '/public'))); // Serve static files
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(express.json()); // Parse JSON bodies
-//app.use(isAuthenticated); // Custom middleware for checking authentication status
-
 
 // Set up session middleware
 app.use(session({
@@ -45,35 +41,18 @@ app.use(cors({
 axios.defaults.withCredentials = true;
 
 
-// Define routes
-// app.get('/', (req, res) => {
-//   // Render the home.ejs template
-//    res.render('home', {isAuthenticated: res.locals.isAuthenticated});
-//   //res.render('home');
-// });
-
-// catch 401 errors and redirect user to the login page
-// catch 500 errors gracefully
-
-
 app.use('/', userRouter);
 app.use('/snapshots', snapshotRouter);
 
-// Error handler middleware
-const errorHandler = (err, req, res, next) => {
-    // Check if the error is a 401 Unauthorized
-    if (err.status === 401) {
-        // Redirect the user to the login page
-        return res.redirect('/login');
-    }
+// Define error-handling middleware for server-side errors
+app.use((req, res, next) => {
+    res.status(404).render('404'); // Page not found errors
 
-    // Handle other errors
-    // Send an error response or log the error
-    res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
-};
-
-// Register the global error handler middleware
-app.use(errorHandler);
+});
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).render('500'); // internal server errors
+});
 
 // Start the server
 app.listen(process.env.PORT , () => {

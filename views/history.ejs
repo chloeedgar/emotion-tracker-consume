@@ -8,13 +8,20 @@
     <!-- Include Bulma CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <style>
-        /* Custom styles here */
+        .footer {
+            position: fixed;
+        }
+
+        .container {
+            margin-top: 90px;
+            margin-bottom: 90px;
+        }
     </style>
 </head>
 
 
 <body>
-    <!-- Include the navigation bar partial -->
+    <!-- Navbar -->
     <%- include('./partials/_navbar') %>
 
         <div id="successBanner" class="notification is-success" style="display: none;">
@@ -76,6 +83,7 @@
             // Function to fetch and display snapshot history
             async function fetchSnapshotHistoryForUser() {
                 try {
+
                     const userId = getUserIdFromSessionStorage();
 
                     // Check if user is authenticated
@@ -88,9 +96,14 @@
                         return; // Prevent further execution
                     }
 
+                    const headers = getHeaders();
+
+                    // Set up request headers with authorization cookie
+                    console.log('Request headers:', headers); //debug logging
+
                     // Make a GET request to fetch snapshot history for the authenticated user
                     const response = await axios.get(`http://localhost:3001/api/snapshots/users/${userId}`, {
-                        withCredentials: true // Include credentials (cookies) in the request
+                        headers
                     });
 
                     const snapshots = response.data;
@@ -192,9 +205,12 @@
                     const selectedTriggers = Array.from(document.querySelectorAll('.selected-trigger')).map(trigger => trigger.textContent.trim());
                     console.log('Selected Triggers:', selectedTriggers);
 
+                    const headers = getHeaders();
+                    console.log(headers); //debug
+
                     // Send a PATCH request to update the snapshot with the selected triggers
                     console.log('Sending PATCH request...');
-                    await axios.patch(`http://localhost:3001/api/snapshots/${snapshotId}`, { contextualTriggers: selectedTriggers });
+                    await axios.patch(`http://localhost:3001/api/snapshots/${snapshotId}`, { contextualTriggers: selectedTriggers }, { headers });
                     console.log('PATCH request successful.');
 
                     // Close the edit modal
@@ -259,8 +275,10 @@
             // Function to delete a snapshot
             async function deleteSnapshot(snapshotId) {
                 try {
+                    const headers = getHeaders();
+                    console.log(headers); //debug
                     // Make a DELETE request to delete the snapshot
-                    await axios.delete(`http://localhost:3001/api/snapshots/${snapshotId}`);
+                    await axios.delete(`http://localhost:3001/api/snapshots/${snapshotId}`, { headers });
                     // Show success banner
                     showSuccessBanner();
                     // Refresh the snapshot list after deletion
@@ -268,6 +286,15 @@
                 } catch (error) {
                     console.error('Error deleting snapshot:', error);
                 }
+            }
+
+            // Function to get headers with authorization token
+            function getHeaders() {
+                const userId = getUserIdFromSessionStorage();
+                return {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userId}`
+                };
             }
 
             // Function to confirm snapshot deletion

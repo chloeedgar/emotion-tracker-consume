@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Record Emotional Snapshot</title>
-    <!-- Include Bulma CSS -->
+    <!-- Bulma CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <style>
         /* Custom styling for the progress bar */
@@ -19,35 +19,34 @@
             height: 20px;
             transition: width 0.3s ease-in-out;
             cursor: pointer;
-            /* Add cursor pointer for drag effect */
         }
 
         .selected-triggers-container {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            /* Adjust the gap between triggers as needed */
+            /* gap between triggers */
         }
 
         .selected-trigger {
             background-color: #f0f0f0;
-            /* Set background color */
             padding: 4px 8px;
-            /* Adjust padding as needed */
             border-radius: 4px;
-            /* Add border radius */
             cursor: pointer;
         }
 
         .selected-trigger:hover {
             background-color: #e0e0e0;
-            /* Change background color on hover */
+        }
+        .container {
+            margin-top: 90px; 
+            margin-bottom: 90px; 
         }
     </style>
 </head>
 
 <body>
-    <!-- Include the navigation bar partial -->
+    <!-- Navbar -->
     <%- include('./partials/_navbar') %>
 
         <!-- Success banner -->
@@ -162,7 +161,6 @@
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         <script>
 
-
             // Function to update the selected level based on click position
             function updateLevel(event, inputId) {
                 const progressBar = event.currentTarget;
@@ -173,7 +171,6 @@
                 bar.style.width = percentage * 100 + '%'; // Update progress bar width
                 document.getElementById(inputId).textContent = level; // Update displayed level value
             }
-
 
             let selectedTriggerIds = []; // Array to store selected trigger IDs
 
@@ -265,6 +262,19 @@
             function submitForm() {
                 const userId = getUserIdFromSessionStorage();
 
+                // Check if userId is available
+                if (!userId) {
+                    // userId is not available, do not proceed with form submission
+                    // display error message and redirect to the login page
+                    const errorMessage = 'You need to be logged in to create a snapshot. Redirecting to login page...';
+                    console.error(errorMessage);
+                    displayErrorMessage(errorMessage);
+                    setTimeout(() => {
+                        window.location.href = '/signin';
+                    }, 1700);
+                    return;
+                }
+
                 // Map selected trigger IDs to their names
                 const selectedTriggerNames = selectedTriggerIds.map(triggerId => {
                     const option = document.querySelector(`#triggerDropdown option[value="${triggerId}"]`);
@@ -290,7 +300,7 @@
                 // Set up request headers with authorization cookie
                 const headers = {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userId}` // Assuming your authorization cookie is JWT token
+                    'Authorization': `Bearer ${userId}`
                 };
                 console.log('Request headers:', headers); //debug logging
 
@@ -304,11 +314,12 @@
                         setTimeout(() => {
                             window.location.reload();
                         }, 1400);
-            
+
                     })
                     .catch(error => {
                         // Handle error
                         console.error('Error creating snapshot:', error);
+                        displayErrorMessage(error)
                     });
             }
 
@@ -322,13 +333,6 @@
                     console.log('User ID retrieved from session storage:', userId);
                     return userId;
                 } else {
-                    // User ID is not available, display error message and redirect to the login page
-                    const errorMessage = 'You need to be logged in to create a snapshot. Redirecting to login page...';
-                    console.error(errorMessage);
-                    displayErrorMessage(errorMessage);
-                    setTimeout(() => {
-                        window.location.href = '/signin';
-                    }, 1700);
                     return null;
                 }
             }

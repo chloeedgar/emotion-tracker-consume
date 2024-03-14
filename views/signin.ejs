@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,9 +8,16 @@
     <!-- Bulma CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <style>
-        /* Add custom styles here */
+        .footer {
+            position: fixed;
+        }
+        .container {
+            margin-top: 90px; 
+            margin-bottom: 90px; 
+        }
     </style>
 </head>
+
 <body>
     <!-- Navbar -->
     <%- include('./partials/_navbar') %>
@@ -74,7 +82,10 @@
                                 sessionStorage.setItem('userId', response.data.userId);
                                 // Set isAuthenticated in session storage
                                 sessionStorage.setItem('isAuthenticated', true);
-                                sessionStorage.setItem('username',username);
+
+                                const token = response.data.token;
+                                sessionStorage.setItem('sessionToken', token);
+
                             }
 
                             // Check if authentication was successful
@@ -85,39 +96,7 @@
                                 // Handle authentication failure (e.g., display error message)
                                 console.error('Login failed:', response.data.message);
                             }
-                            // .then(response => {
-                            //     console.log('Login response:', response); // Log the response object
-                            // // Check if response is successful
-                            // if (response.status === 200) {
-                            //     // Check if JWT token is present in the response
-                            //     if (response.data.token) {
-                            //         // Store JWT token in local storage
-                            //         localStorage.setItem('token', response.data.token);
 
-                            //         console.log('Token has been set successfully: ' + localStorage.getItem('token')); //Debug
-
-                            //         // Check if userId is present in the response
-                            //         if (response.data.userId) {
-                            //             // Store userId in local storage
-                            //             localStorage.setItem('userId', response.data.userId);
-                            //             console.log('User ID has been set successfully: ' + localStorage.getItem('userId')); // Debug
-                            //         }
-                            //     }
-
-                            //     // Check if authentication was successful
-                            //     if (response.data.status === 'success') {
-                            //         // Update UI or perform other actions for successful login
-                            //         document.getElementById('successBanner').style.display = 'block';
-                            //         setTimeout(() => {
-                            //             window.location.href = '/'; // Redirect to home page after 3 seconds  debug
-                            //         }, 1700);
-                            //     } else {
-                            //         // Handle authentication failure (e.g., display error message)
-                            //         console.error('Login failed:', response.data.message);
-                            //         document.getElementById('errorMessage').textContent = response.data.message;
-                            //         document.getElementById('errorMessage').style.display = 'block';
-
-                            //     }
                         } else {
                             // Handle non-200 response status (e.g., display error message)
                             console.error('Login failed:', response.statusText);
@@ -145,8 +124,8 @@
         </script>
 
 
-     <!-- Footer -->
-     <%- include('./partials/_footer') %>
+        <!-- Footer -->
+        <%- include('./partials/_footer') %>
 </body>
 
 </html>

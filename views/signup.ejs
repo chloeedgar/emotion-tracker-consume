@@ -7,14 +7,28 @@
   <title>Sign Up</title>
   <!-- Include Bulma CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+  <style>
+    .footer {
+      position: fixed;
+    }
+
+    .container {
+      margin-top: 90px;
+      margin-bottom: 90px;
+    }
+  </style>
 </head>
 
 <body>
-  <!-- Include the navigation bar partial -->
+  <!-- Navbar -->
   <%- include('./partials/_navbar') %>
 
     <div id="successMessage" class="notification is-success is-hidden">
       Your account has been successfully created. You will be redirected to the sign-in page shortly.
+    </div>
+
+    <div id="errorMessage" class="notification is-danger hidden">
+      <button class="delete" onclick="this.parentElement.classList.add('hidden')"></button>
     </div>
 
     <section class="section">
@@ -113,14 +127,39 @@
             }, 3000); // Redirect after 3 seconds
           })
           .catch(error => {
-            // Handle sign-up error
-            console.error('Sign Up error:', error);
-            // Display error message to user
+            if (error.response) {
+              if (error.response.status === 422) {
+                // Validation error response
+                const validationErrors = error.response.data.errors;
+                const errorMessage = validationErrors.map(error => error.msg).join('<br>');
+                //display validation error to use
+                displayErrorMessage(errorMessage);
+              } else if (error.response.status === 400 && error.response.data.message === "Username already exists") {
+                // Username already exists
+                displayErrorMessage(error.response.data.message);
+                setTimeout(() => {
+                  window.location.href = '/signin';
+                }, 1700); // Redirects to signin
+              } else {
+                // Other error response
+                console.error('Error:', error);
+                displayErrorMessage('An unexpected error occurred. Please try again later.');
+              }
+            } else {
+              // Network error
+              console.error('Error:', error);
+              displayErrorMessage('An unexpected error occurred. Please try again later.');
+            }
           });
       });
+
+      // Function to display error message
+      function displayErrorMessage(message) {
+        const errorMessageElement = document.getElementById('errorMessage');
+        errorMessageElement.innerHTML = message;
+        errorMessageElement.classList.remove('hidden');
+      }
     </script>
-
-
 
     <!-- Footer -->
     <%- include('./partials/_footer') %>

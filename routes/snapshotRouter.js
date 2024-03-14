@@ -1,50 +1,25 @@
 const express = require('express');
-const { truncate } = require('fs/promises');
 const snapshotRouter = express.Router();
 
+// GET route for displaying the home page
+snapshotRouter.get('/', (req, res) => {
+    res.render('home');
+});
 
 // GET route for displaying the form to record a new snapshot
 snapshotRouter.get('/record-snapshot', (req, res) => {
-    res.render('create-snapshot', {isAuthenticated:req.session.isAuthenticated || false}); 
-    //res.render('snapshotCreateForm'); 
+    res.render('create-snapshot'); 
 });
 
-// GET route for displaying all recorded snapshots for the currently logged-in user
+// GET route for displaying all snapshots for the currently logged-in user
 snapshotRouter.get('/history', (req, res) => {
-    const userId = req.session.userId; // Assuming userId is stored in the session
-    res.render('history', {isAuthenticated:req.session.isAuthenticated || false, userId:req.session.userId }); 
-
-    // Render the snapshotHistoryForUser.ejs template and pass userId to it
-    // res.render('snapshotHistoryForUser', { userId });
-    //res.render('viewAllSnapshotsForUser', { currentPage }); 
-
+    res.render('history'); 
 });
 
-
-
-// snapshotRouter.get('/record-snapshot', (req, res) => {
-//     const isAuthenticated = req.session.isAuthenticated || false;
-
-//     res.render('snapshotHistoryForUser', { isAuthenticated:isAuthenticated }); 
-// });
-
-
-// GET route for rendering the navbar
+// GET route for displaying trends in emotions for the currently logged-in user
 snapshotRouter.get('/trends', (req, res) => {
-    // Retrieve isAuthenticated value from session
-    const isAuthenticated = req.session.isAuthenticated || false;
-
-    // Render the navbar and pass isAuthenticated to the template
-    res.render('trends', { isAuthenticated: isAuthenticated });
+    res.render('trends');
 });
 
-
-snapshotRouter.get('/', (req, res) => {
-    // Retrieve isAuthenticated value from session
-    const isAuthenticated = req.session.isAuthenticated || false;
-
-    // Render the navbar and pass isAuthenticated to the template
-    res.render('home', { isAuthenticated: isAuthenticated });
-});
 
 module.exports = snapshotRouter;
